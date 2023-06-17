@@ -1,1 +1,4 @@
 rootProject.name = 'information'
+include 'crypto-api'
+include 'domain'
+
