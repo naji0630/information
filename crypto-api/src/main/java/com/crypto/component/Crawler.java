@@ -36,7 +36,6 @@ public class Crawler {
                 .map(MarketPair::getBaseCurrencySlug)
                 .collect(Collectors.toList());
 
-        System.out.println("Upbit Coin Total: " + symbols.size());
 
         for (String symbol : symbols) {
 
@@ -51,9 +50,10 @@ public class Crawler {
             dominances.add(new UpbitDominance(temp.coinSymbol, temp.getUpbitDominance()));
         }
 
-        dominances.stream()
-                .sorted((x, y) -> y.getUpbitDominance().compareTo(x.getUpbitDominance()))
-                .forEach(x -> System.out.println(x.getCoinSymbol() + "\t" + x.getUpbitDominance()));
+        dominances.sort((x, y) -> y.getUpbitDominance().compareTo(x.getUpbitDominance()));
+
+        System.out.println("Upbit Dominance");
+        dominances.forEach(x-> System.out.println(x.getCoinSymbol() + "\t" + x.getUpbitDominance()));
 
     }
 
