@@ -53,7 +53,6 @@ public class Crawler {
             Thread.sleep(1000);
         }
 
-        result.forEach(System.out::println);
     }
 
     @AllArgsConstructor
@@ -80,7 +79,7 @@ public class Crawler {
         }
 
         private BigDecimal getUpbitDominance() {
-            return getUpbitVolume().divide(total, 2, RoundingMode.HALF_UP);
+            return getUpbitVolume().divide(total, 5, RoundingMode.HALF_UP);
         }
     }
 }
