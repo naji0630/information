@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "CoinMarketCapClient", url = "https://api.coinmarketcap.com")
 public interface CoinMarketCapClient {
 
-    @GetMapping(value = "/data-api/v3/cryptocurrency/market-pairs/latest?start=1&limit=5&category=spot&centerType=all&sort=cmc_rank_advanced", produces = "application/json", consumes = "application/json")
+    @GetMapping(value = "/data-api/v3/cryptocurrency/market-pairs/latest?start=1&limit=300&category=spot&centerType=all&sort=cmc_rank_advanced", produces = "application/json", consumes = "application/json")
     CoinMarketCapListingResponse getCoinMarketDominanceInfo(@RequestParam(value = "slug") String slug);
 
     @GetMapping(value = "/data-api/v3/exchange/market-pairs/latest?slug=upbit&category=spot&limit=400", produces = "application/json", consumes = "application/json")

@@ -1,5 +1,6 @@
 package com.crypto.client.coinmarket;
 
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,5 +35,8 @@ public class CoinMarketCapListingResponse {
         String exchangeId;
         String exchangeName;
         String exchangeSlug;
+        BigDecimal volumeBase;
+        BigDecimal volumeUsd;
+        BigDecimal volumeQuote;
     }
 }
