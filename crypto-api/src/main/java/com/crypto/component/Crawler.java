@@ -28,7 +28,7 @@ public class Crawler {
     @Scheduled(fixedDelay = 60 * 1000, initialDelay = 0)
     public void getUpbitCoinList() throws IOException, InterruptedException {
 
-        List<MarketTrades> result = new ArrayList<>();
+        List<UpbitDominance> dominances = new ArrayList<>();
         CoinMarketCapUpbitListingResponse response = coinMarketCapDao.getUpbitCoinList();
         final List<String> symbols = response.getData()
                 .getMarketPairs()
@@ -48,11 +48,21 @@ public class Crawler {
             MarketTrades temp = new MarketTrades(
                     markets.stream().map(MarketTradeVolume::getTradeVolume).reduce(BigDecimal.ZERO, BigDecimal::add),
                     symbol, markets);
-            result.add(temp);
-            System.out.println(temp.coinSymbol + "\t" + temp.getUpbitDominance());
-            Thread.sleep(1000);
+            dominances.add(new UpbitDominance(temp.coinSymbol, temp.getUpbitDominance()));
         }
 
+        dominances.stream()
+                .sorted((x, y) -> y.getUpbitDominance().compareTo(x.getUpbitDominance()))
+                .forEach(x -> System.out.println(x.getCoinSymbol() + "\t" + x.getUpbitDominance()));
+
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @ToString
+    public class UpbitDominance {
+        private String coinSymbol;
+        private BigDecimal upbitDominance;
     }
 
     @AllArgsConstructor
