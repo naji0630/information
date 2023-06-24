@@ -4,11 +4,19 @@ import com.crypto.client.coinmarket.CoinMarketCapListingResponse;
 import com.crypto.client.coinmarket.CoinMarketCapUpbitListingResponse;
 import com.crypto.client.coinmarket.CoinMarketCapUpbitListingResponse.MarketPair;
 import com.crypto.dao.CoinMarketCapDao;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,10 +33,10 @@ public class Crawler {
 
     private final CoinMarketCapDao coinMarketCapDao;
 
-    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 0)
+    @Scheduled(fixedDelay = 10 * 60 * 1000, initialDelay = 0)
     public void getUpbitCoinList() throws IOException, InterruptedException {
 
-        List<UpbitDominance> dominances = new ArrayList<>();
+        Map<String, UpbitDominance> dominances = new HashMap<>();
         CoinMarketCapUpbitListingResponse response = coinMarketCapDao.getUpbitCoinList();
         final List<String> symbols = response.getData()
                 .getMarketPairs()
@@ -36,24 +44,39 @@ public class Crawler {
                 .map(MarketPair::getBaseCurrencySlug)
                 .collect(Collectors.toList());
 
-
         for (String symbol : symbols) {
 
             CoinMarketCapListingResponse top100Market = coinMarketCapDao.getRankingList(symbol);
             List<MarketTradeVolume> markets = top100Market.getData().getMarketPairs().stream()
-                    .map(x -> new MarketTradeVolume(x.getExchangeSlug(), x.getVolumeBase()))
+                    .map(x -> new MarketTradeVolume(x.getExchangeSlug(), x.getVolumeBase(), x.getPrice(), x.getQuoteSymbol()))
                     .collect(Collectors.toList());
 
             MarketTrades temp = new MarketTrades(
                     markets.stream().map(MarketTradeVolume::getTradeVolume).reduce(BigDecimal.ZERO, BigDecimal::add),
                     symbol, markets);
-            dominances.add(new UpbitDominance(temp.coinSymbol, temp.getUpbitDominance()));
+            dominances.put(temp.coinSymbol, new UpbitDominance(temp.coinSymbol, temp.getUpbitVolume(), temp.getUpbitDominance(),
+                    temp.getUpbitPrice()));
         }
 
-        dominances.sort((x, y) -> y.getUpbitDominance().compareTo(x.getUpbitDominance()));
-
         System.out.println("Upbit Dominance");
-        dominances.forEach(x-> System.out.println(x.getCoinSymbol() + "\t" + x.getUpbitDominance()));
+
+        LocalDateTime now = LocalDateTime.now();
+        String filename = "/Users/jihoon.na/IdeaProjects/information/crypto-api/src/main/resources/"+now+".tsv";
+        File file = new File(filename);
+        FileWriter fw = new FileWriter(file);
+        BufferedWriter writer = new BufferedWriter(fw);
+
+        dominances.keySet().forEach(
+                x -> {
+                    try {
+                        writer.write(
+                                now + "\t" + dominances.get(x).getPrice() + "\t" + dominances.get(x).getCoinSymbol() + "\t" + dominances.get(x).getUpbitDominance()+"\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+        writer.close();
 
     }
 
@@ -62,7 +85,9 @@ public class Crawler {
     @ToString
     public class UpbitDominance {
         private String coinSymbol;
+        private BigDecimal volume;
         private BigDecimal upbitDominance;
+        private BigDecimal price;
     }
 
     @AllArgsConstructor
@@ -71,6 +96,8 @@ public class Crawler {
     public class MarketTradeVolume {
         private String marketSymbol;
         private BigDecimal tradeVolume;
+        private BigDecimal price;
+        private String quoteSymbol;
     }
 
     @AllArgsConstructor
@@ -86,6 +113,14 @@ public class Crawler {
                     .filter(x -> x.getMarketSymbol().equals("upbit"))
                     .map(MarketTradeVolume::getTradeVolume)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        private BigDecimal getUpbitPrice() {
+            return marketTradeVolumes.stream()
+                    .filter(x -> x.getMarketSymbol().equals("upbit"))
+                    .filter(x->"KRW".equals(x.getQuoteSymbol()))
+                    .map(MarketTradeVolume::getPrice)
+                    .findAny().orElse(BigDecimal.ZERO);
         }
 
         private BigDecimal getUpbitDominance() {

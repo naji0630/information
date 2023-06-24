@@ -35,6 +35,8 @@ public class CoinMarketCapListingResponse {
         String exchangeId;
         String exchangeName;
         String exchangeSlug;
+        String quoteSymbol;
+        BigDecimal price;
         BigDecimal volumeBase;
         BigDecimal volumeUsd;
         BigDecimal volumeQuote;
