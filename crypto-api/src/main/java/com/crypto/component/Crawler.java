@@ -48,7 +48,7 @@ public class Crawler {
 
             CoinMarketCapListingResponse top100Market = coinMarketCapDao.getRankingList(symbol);
             List<MarketTradeVolume> markets = top100Market.getData().getMarketPairs().stream()
-                    .map(x -> new MarketTradeVolume(x.getExchangeSlug(), x.getVolumeBase(), x.getPrice(), x.getQuoteSymbol()))
+                    .map(x -> new MarketTradeVolume(x.getExchangeSlug(), x.getVolumeBase(), x.getQuote(), x.getQuoteSymbol()))
                     .collect(Collectors.toList());
 
             MarketTrades temp = new MarketTrades(
